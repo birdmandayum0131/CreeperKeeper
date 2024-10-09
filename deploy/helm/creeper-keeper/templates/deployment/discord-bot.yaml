@@ -1,0 +1,18 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: discord-bot
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {{.Values.podSelector.bot | toYaml | nindent 6}}
+  template:
+    metadata:
+      labels: {{.Values.podSelector.bot | toYaml | nindent 8}}
+    spec:
+      containers:
+        - name: discord-bot-container
+          image: "creeper-keeper:latest"
+          envFrom:
+            - configMapRef:
+                name: discord-bot-config
