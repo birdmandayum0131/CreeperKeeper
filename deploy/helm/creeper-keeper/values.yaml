@@ -1,0 +1,10 @@
+podSelector:
+  bot:
+    app: creeper-keeper
+    tier: discord-bot
+
+token:
+  bot: <discord-bot-token>
+
+urls:
+  minecraft-api: <minecraft-api-url:port>
