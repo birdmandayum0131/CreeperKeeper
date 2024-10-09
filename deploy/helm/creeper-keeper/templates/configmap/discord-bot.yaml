@@ -1,0 +1,7 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: discord-bot-config
+data:
+  BOT_TOKEN: {{ .Values.token.bot }}
+  MINECRAFT_API_PATH: {{ .Values.urls.minecraft-api }}
