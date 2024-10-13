@@ -1,0 +1,14 @@
+stages:
+  - deploy
+
+before_script:
+  - git clone --depth 1 https://github.com/birdmandayum0131/CreeperKeeper.git
+  - cd CreeperKeeper
+
+deploy_to_k8s:
+  stage: deploy
+  image: dtzar/helm-kubectl:latest
+  script:
+    - kubectl config get-contexts
+    - kubectl config use-context birdman0131/kubernetes-agent:k3s-home-agent
+    - helm upgrade --install creeper-keeper deploy/helm/creeper-keeper -n discord-bot --set token.bot="$DISCORD_BOT_TOKEN" --set urls.minecraft="$MINECRAFT_API_URL"
