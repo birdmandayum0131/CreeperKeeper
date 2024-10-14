@@ -8,19 +8,21 @@ from data.message import minecraft_server_message
 
 class ServerManageView(discord.ui.View):
     def __init__(self, server_status: str = "offline"):
-        super().__init__()
+        super().__init__(timeout=None)
         self.api_root = os.getenv("MINECRAFT_API_PATH")
         self.startButton = button.StartServerButton(disabled=True)
         self.stopButton = button.StopServerButton(disabled=True)
+        self.updateButton = button.UpdateServerButton()
         self.serverOnline = server_status == "online"
         self.startButton.callback = self.startServerCallback
         self.stopButton.callback = self.stopServerCallback
+        self.updateButton.callback = self.updateServerCallback
         self.startButton.disabled = self.serverOnline
         self.stopButton.disabled = not self.serverOnline
-        self.timeout = None
 
         self.add_item(self.startButton)
         self.add_item(self.stopButton)
+        self.add_item(self.updateButton)
 
     async def startServerCallback(self, interaction: discord.Interaction):
         async with aiohttp.ClientSession() as session:
@@ -49,3 +51,20 @@ class ServerManageView(discord.ui.View):
         await asyncio.sleep(60)
         self.startButton.disabled = False
         await interaction.message.edit(content=minecraft_server_message.format(serverStatus="offline"), view=self)
+
+    async def updateServerCallback(self, interaction: discord.Interaction):
+        self.updateButton.disabled = True
+        await interaction.response.edit_message(view=self)
+        async with aiohttp.ClientSession() as session:
+            async with session.get(os.getenv("MINECRAFT_API_PATH") + "/api/v1/server/minecraft/status") as resp:
+                if resp.status != 200:
+                    err = await resp.text()
+                    interaction.response.send_message("Error: " + err)
+                    return
+
+                data = await resp.json()
+                server_status = data.get("serverStatus")
+        self.serverOnline = server_status == "online"
+        self.startButton.disabled = self.serverOnline
+        self.stopButton.disabled = not self.serverOnline
+        await interaction.message.edit(content=minecraft_server_message.format(serverStatus=server_status), view=self)

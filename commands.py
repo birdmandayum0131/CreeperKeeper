@@ -4,7 +4,7 @@ import aiohttp
 from view import ServerManageView
 from data.message import minecraft_server_message
 from discord.ext.commands import Context
-from client import defaultClient as bot
+from bot import bot
 
 
 @bot.command()
