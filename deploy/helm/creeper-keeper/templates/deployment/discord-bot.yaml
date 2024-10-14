@@ -13,6 +13,7 @@ spec:
       containers:
         - name: discord-bot-container
           image: "creeper-keeper:latest"
+          imagePullPolicy: Never
           envFrom:
             - configMapRef:
                 name: discord-bot-config
