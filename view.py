@@ -8,7 +8,7 @@ from data.message import minecraft_server_message
 
 class ServerManageView(discord.ui.View):
     def __init__(self, server_status: str = "offline"):
-        super().__init__()
+        super().__init__(timeout=None)
         self.api_root = os.getenv("MINECRAFT_API_PATH")
         self.startButton = button.StartServerButton(disabled=True)
         self.stopButton = button.StopServerButton(disabled=True)
@@ -17,7 +17,6 @@ class ServerManageView(discord.ui.View):
         self.stopButton.callback = self.stopServerCallback
         self.startButton.disabled = self.serverOnline
         self.stopButton.disabled = not self.serverOnline
-        self.timeout = None
 
         self.add_item(self.startButton)
         self.add_item(self.stopButton)
