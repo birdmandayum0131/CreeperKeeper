@@ -1,7 +1,7 @@
 import os
 import commands  # * setup commands
 from dotenv import load_dotenv
-from client import defaultClient as bot
+from bot import bot
 
 # * Load environment variable
 load_dotenv()
