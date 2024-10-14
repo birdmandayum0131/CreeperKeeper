@@ -19,3 +19,12 @@ class StopServerButton(discord.ui.Button):
             disabled=disabled,
             custom_id="stop_server_button",
         )
+
+
+class UpdateServerButton(discord.ui.Button):
+    def __init__(self):
+        super().__init__(
+            label="Refresh Server Status",
+            style=discord.ButtonStyle.blurple,
+            custom_id="update_server_button",
+        )
