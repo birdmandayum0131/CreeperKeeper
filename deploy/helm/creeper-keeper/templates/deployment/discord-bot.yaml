@@ -12,8 +12,8 @@ spec:
     spec:
       containers:
         - name: discord-bot-container
-          image: "creeper-keeper:latest"
-          imagePullPolicy: Never
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: IfNotPresent
           envFrom:
             - configMapRef:
                 name: discord-bot-config
