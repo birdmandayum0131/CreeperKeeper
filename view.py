@@ -29,7 +29,7 @@ class ServerManageView(discord.ui.View):
             async with session.post(os.getenv("MINECRAFT_API_PATH") + "/api/v1/server/minecraft/start") as resp:
                 if resp.status != 200:
                     err = await resp.text()
-                    interaction.response.send_message("Error: " + err)
+                    await interaction.response.send_message("Error: " + err)
                     return
 
         self.startButton.disabled = True
@@ -43,7 +43,7 @@ class ServerManageView(discord.ui.View):
             async with session.post(os.getenv("MINECRAFT_API_PATH") + "/api/v1/server/minecraft/stop") as resp:
                 if resp.status != 200:
                     err = await resp.text()
-                    interaction.response.send_message("Error: " + err)
+                    await interaction.response.send_message("Error: " + err)
                     return
 
         self.stopButton.disabled = True
@@ -53,13 +53,11 @@ class ServerManageView(discord.ui.View):
         await interaction.message.edit(content=minecraft_server_message.format(serverStatus="offline"), view=self)
 
     async def updateServerCallback(self, interaction: discord.Interaction):
-        self.updateButton.disabled = True
-        await interaction.response.edit_message(view=self)
         async with aiohttp.ClientSession() as session:
             async with session.get(os.getenv("MINECRAFT_API_PATH") + "/api/v1/server/minecraft/status") as resp:
                 if resp.status != 200:
                     err = await resp.text()
-                    interaction.response.send_message("Error: " + err)
+                    await interaction.response.send_message("Error: " + err)
                     return
 
                 data = await resp.json()
@@ -67,4 +65,4 @@ class ServerManageView(discord.ui.View):
         self.serverOnline = server_status == "online"
         self.startButton.disabled = self.serverOnline
         self.stopButton.disabled = not self.serverOnline
-        await interaction.message.edit(content=minecraft_server_message.format(serverStatus=server_status), view=self)
+        await interaction.response.edit_message(content=minecraft_server_message.format(serverStatus=server_status), view=self)
