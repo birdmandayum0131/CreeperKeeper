@@ -8,3 +8,7 @@ token:
 
 urls:
   minecraft: <minecraft-api-url:port>
+
+image:
+  repository: creeper-keeper
+  tag: latest

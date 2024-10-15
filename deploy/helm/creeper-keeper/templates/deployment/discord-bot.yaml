@@ -10,10 +10,12 @@ spec:
     metadata:
       labels: {{.Values.podSelector.bot | toYaml | nindent 8}}
     spec:
+      imagePullSecrets:
+        - name: gitlab-registry-secret
       containers:
         - name: discord-bot-container
-          image: "creeper-keeper:latest"
-          imagePullPolicy: Never
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: IfNotPresent
           envFrom:
             - configMapRef:
                 name: discord-bot-config
