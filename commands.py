@@ -1,7 +1,7 @@
 # * Commands
 import os
 import aiohttp
-from view import ServerManageView
+from view import ServerControlView
 from data.message import minecraft_server_message
 from discord.ext.commands import Context
 from bot import bot
@@ -23,5 +23,5 @@ async def minecraft(ctx: Context):
 
             data = await resp.json()
             minecraft_server_status = data.get("serverStatus")
-            view = ServerManageView(minecraft_server_status)
+            view = ServerControlView(minecraft_server_status)
             await ctx.send(content=minecraft_server_message.format(serverStatus=minecraft_server_status), view=view)

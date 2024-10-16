@@ -6,7 +6,21 @@ import asyncio
 from data.message import minecraft_server_message
 
 
-class ServerManageView(discord.ui.View):
+class ServerControlView(discord.ui.View):
+    """
+    A view class for managing the minecraft server, with buttons of start, stop, and refresh.
+
+    Start Button: send a POST request to minecraft api to start the server
+    Stop Button: send a POST request to minecraft api to stop the server
+    Refresh Button: send a GET request to minecraft api to fetch the server status
+
+    Attributes:
+        serverOnline (str): The status of the server, either "online" or "offline".
+        startButton (discord.ui.Button): The button for starting the server.
+        stopButton (discord.ui.Button): The button for stopping the server.
+        updateButton (discord.ui.Button): The button for fetching the server status.
+    """
+
     def __init__(self, server_status: str = "offline"):
         super().__init__(timeout=None)
         self.api_root = os.getenv("MINECRAFT_API_PATH")
