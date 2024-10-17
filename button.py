@@ -21,10 +21,10 @@ class StopServerButton(discord.ui.Button):
         )
 
 
-class UpdateServerButton(discord.ui.Button):
+class RefreshServerButton(discord.ui.Button):
     def __init__(self):
         super().__init__(
             label="Refresh Server Status",
             style=discord.ButtonStyle.blurple,
-            custom_id="update_server_button",
+            custom_id="refresh_status_button",
         )

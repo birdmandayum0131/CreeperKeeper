@@ -3,7 +3,7 @@ import aiohttp
 import discord
 import button
 import asyncio
-from data.message import minecraft_server_message
+import data.message
 
 
 class ServerControlView(discord.ui.View):
@@ -21,75 +21,112 @@ class ServerControlView(discord.ui.View):
         updateButton (discord.ui.Button): The button for fetching the server status.
     """
 
-    def __init__(self, server_status: str = "offline"):
+    def __init__(self):
         super().__init__(timeout=None)
         self.api_root = os.getenv("MINECRAFT_API_PATH")
-        self.startApiPath = self.api_root + "/api/v1/server/minecraft/start"
-        self.stopApiPath = self.api_root + "/api/v1/server/minecraft/stop"
-        self.updateApiPath = self.api_root + "/api/v1/server/minecraft/status"
+        self.start_server_endpoint = self.api_root + "/api/v1/server/minecraft/start"
+        self.stop_server_endpoint = self.api_root + "/api/v1/server/minecraft/stop"
+        self.server_status_endpoint = self.api_root + "/api/v1/server/minecraft/status"
 
-        self.startButton = button.StartServerButton(disabled=True)
-        self.stopButton = button.StopServerButton(disabled=True)
-        self.updateButton = button.UpdateServerButton()
-        self.serverOnline = server_status == "online"
-        self.startButton.callback = self.startServerCallback
-        self.stopButton.callback = self.stopServerCallback
-        self.updateButton.callback = self.updateServerCallback
-        self.startButton.disabled = self.serverOnline
-        self.stopButton.disabled = not self.serverOnline
+        self.start_button = button.StartServerButton()
+        self.stop_button = button.StopServerButton()
+        self.refresh_button = button.RefreshServerButton()
 
-        self.add_item(self.startButton)
-        self.add_item(self.stopButton)
-        self.add_item(self.updateButton)
+        self.start_button.callback = self.startServerCallback
+        self.stop_button.callback = self.stopServerCallback
+        self.refresh_button.callback = self.refreshButtonCallback
+
+        self.add_item(self.start_button)
+        self.add_item(self.stop_button)
+        self.add_item(self.refresh_button)
 
     async def startServerCallback(self, interaction: discord.Interaction):
-        async with aiohttp.ClientSession() as session:
-            async with session.post(os.getenv("MINECRAFT_API_PATH") + "/api/v1/server/minecraft/start") as resp:
-                if resp.status != 200:
-                    err = await resp.text()
-                    await interaction.response.send_message("Error: " + err)
-                    return
+        # * refresh view before any server action
+        await self.RefreshServerStatus()
+        if self._error is not None:
+            await interaction.response.edit_message(content=self.ServerControlMessage, view=self)
+            return
 
-        self.startButton.disabled = True
-        await interaction.response.edit_message(view=self)
+        err, _ = await self.request2MCServer("Start Server")
+        if err is not None:
+            print("Start server failed:" + err)
+            self._error = err
+            await interaction.response.edit_message(content=self.ServerControlMessage, view=self)
+            return
+
+        self._serverStatus = "pending"
+        self.updateView()
+        await interaction.response.edit_message(content=self.ServerControlMessage, view=self)
         await asyncio.sleep(60)
-        self.stopButton.disabled = False
-        await interaction.message.edit(content=minecraft_server_message.format(serverStatus="online"), view=self)
+
+        # * refresh view after server action
+        await self.RefreshServerStatus()
+        await interaction.message.edit(content=self.ServerControlMessage, view=self)
 
     async def stopServerCallback(self, interaction: discord.Interaction):
-        async with aiohttp.ClientSession() as session:
-            async with session.post(os.getenv("MINECRAFT_API_PATH") + "/api/v1/server/minecraft/stop") as resp:
-                if resp.status != 200:
-                    err = await resp.text()
-                    await interaction.response.send_message("Error: " + err)
-                    return
+        # * refresh view before any server action
+        await self.RefreshServerStatus()
+        if self._error is not None:
+            await interaction.response.edit_message(content=self.ServerControlMessage, view=self)
+            return
 
-        self.stopButton.disabled = True
-        await interaction.response.edit_message(view=self)
+        err, _ = await self.request2MCServer("Stop Server")
+        if err is not None:
+            print("Stop server failed:" + err)
+            self._error = err
+            await interaction.response.edit_message(content=self.ServerControlMessage, view=self)
+            return
+
+        self._serverStatus = "pending"
+        self.updateView()
+        await interaction.response.edit_message(content=self.ServerControlMessage, view=self)
         await asyncio.sleep(60)
-        self.startButton.disabled = False
-        await interaction.message.edit(content=minecraft_server_message.format(serverStatus="offline"), view=self)
 
-    async def updateServerCallback(self, interaction: discord.Interaction):
-        async with aiohttp.ClientSession() as session:
-            async with session.get(os.getenv("MINECRAFT_API_PATH") + "/api/v1/server/minecraft/status") as resp:
-                if resp.status != 200:
-                    err = await resp.text()
-                    await interaction.response.send_message("Error: " + err)
-                    return
+        # * refresh view after server action
+        await self.RefreshServerStatus()
+        await interaction.message.edit(content=self.ServerControlMessage, view=self)
 
-                data = await resp.json()
-                server_status = data.get("serverStatus")
-        self.serverOnline = server_status == "online"
-        self.startButton.disabled = self.serverOnline
-        self.stopButton.disabled = not self.serverOnline
-        await interaction.response.edit_message(content=minecraft_server_message.format(serverStatus=server_status), view=self)
+    async def refreshButtonCallback(self, interaction: discord.Interaction):
+        """Fetch the server status and update the view."""
+        await self.RefreshServerStatus()
+        await interaction.response.edit_message(content=self.ServerControlMessage, view=self)
 
-    async def Request2MCServer(self, action: str) -> tuple[str | None, dict | None]:
+    async def RefreshServerStatus(self):
+        """Fetch the server status and update the view state."""
+        err, data = await self.request2MCServer("Fetch Status")
+        if err is not None:
+            print("Fetch server status failed:" + err)
+            self._serverStatus = "unknown"
+            self._error = err
+            self.updateView()  # * udpate view before edit message
+            return
+
+        self._serverStatus = data.get("serverStatus")
+        self._error = None
+        self.updateView()  # * udpate view before edit message
+
+    def updateView(self):
+        """Update view items with server status.
+
+        Args:
+            server_status (str): The status of the server, fetched from minecraft api.
+        """
+        match self._serverStatus:
+            case "online":
+                self.start_button.disabled = True
+                self.stop_button.disabled = False
+            case "offline":
+                self.start_button.disabled = False
+                self.stop_button.disabled = True
+            case _:
+                self.start_button.disabled = True
+                self.stop_button.disabled = True
+
+    async def request2MCServer(self, action: str) -> tuple[str | None, dict | None]:
         """Define how to request to minecraft api for each action.
 
         Args:
-            action (str): enum["start", "stop", "status"]
+            action (str): enum["Start Server", "Stop Server", "Fetch Status"]
 
         Raises:
             ValueError: raise when action | requestType is not defined.
@@ -98,14 +135,14 @@ class ServerControlView(discord.ui.View):
             tuple[str | None, dict | None]: (err, data)
         """
         match action:
-            case "start":
-                endpoint = self.startApiPath
+            case "Start Server":
+                endpoint = self.start_server_endpoint
                 requestType = "POST"
-            case "stop":
-                endpoint = self.stopApiPath
+            case "Stop Server":
+                endpoint = self.stop_server_endpoint
                 requestType = "POST"
-            case "status":
-                endpoint = self.updateApiPath
+            case "Fetch Status":
+                endpoint = self.server_status_endpoint
                 requestType = "GET"
             case _:
                 raise ValueError(f"Invalid action: {action}")
@@ -115,15 +152,16 @@ class ServerControlView(discord.ui.View):
                     async with session.post(endpoint) as resp:
                         if resp.status != 200:
                             return await resp.text(), None
-                        return await None, resp.json()
+                        return None, await resp.json()
                 case "GET":
                     async with session.get(endpoint) as resp:
                         if resp.status != 200:
                             return await resp.text(), None
-                        return await None, resp.json()
+                        return None, await resp.json()
                 case _:
                     raise ValueError(f"Undefined request type: {requestType}")
 
-    @classmethod
-    def ServerControlMessage(cls, server_status: str) -> str:
-        return minecraft_server_message.format(serverStatus=server_status)
+    @property
+    def ServerControlMessage(self) -> str:
+        error_message = data.message.Error(self._error) if self._error is not None else ""
+        return data.message.minecraft_server_message.format(serverStatus=self._serverStatus, errorMessage=error_message)
