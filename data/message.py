@@ -1,4 +1,29 @@
-minecraft_server_message = """
+import discord_colorize
+
+colors = discord_colorize.Colors()
+
+
+# * Define common used colors
+def title(message: str) -> str:
+    return f"{colors.colorize(message, fg='pink', bold=True)}"
+
+
+def field(message: str) -> str:
+    return f"{colors.colorize(message, fg='green', bold=True)}"
+
+
+def value(message: str) -> str:
+    return f"{colors.colorize(message, fg='blue', bold=True)}"
+
+
+def Error(message: str) -> str:
+    return f"""```ansi
+{colors.colorize(message, fg='red', bg='white', bold=True)}
+```
+"""
+
+
+minecraft_server_message = f"""
 **【Minecraft 伺服器】**
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
  如果你不知道該怎麼連線:point_down:
@@ -20,10 +45,10 @@ minecraft_server_message = """
 
 __ *( 伺服器啟動大約需要 30 秒到 1 分鐘 )* __
 ```ansi
-[2;35m[伺服器資訊]
-[2;34m[2;36m[2;37m[2;35m[2;37m[2;32m[2;34m[2;32m伺服器位址 : [0m[2;34m[0m[2;32m[0m[2;37m[0m[2;35m[0m[2;37m[0m[2;36m[2;37m[2;31m[2;30m[2;34m[2;32m[2;34mminecraft.bardbird.com[0m[2;32m
-[2;33m[2;37m[2;34m[2;32m伺服器版本 : [0m[2;34m[0m[2;37m[0m[2;33m[2;32m[2;34m1.21.1
-[2;37m[2;34m[2;32m伺服器狀態 : [0m[2;34m[0m[2;37m[0m[2;34m[2;32m[2;34m{serverStatus}[0m[2;32m[0m[2;34m
-[0m[2;32m[0m[2;33m[0m[2;32m[0m[2;34m[0m[2;30m[0m[2;31m[0m[2;37m[0m[2;36m[0m[2;34m[0m[2;35m[0m
+{title('[伺服器資訊]')}
+{field('伺服器位址 : ')}{value('minecraft.bardbird.com')}
+{field('伺服器版本 : ')}{value('1.21.1')}
+{field('伺服器狀態 : ')}{value('{serverStatus}')}
 ```
+{{errorMessage}}
 """
