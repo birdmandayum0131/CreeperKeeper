@@ -24,6 +24,10 @@ class ServerControlView(discord.ui.View):
     def __init__(self, server_status: str = "offline"):
         super().__init__(timeout=None)
         self.api_root = os.getenv("MINECRAFT_API_PATH")
+        self.startApiPath = self.api_root + "/api/v1/server/minecraft/start"
+        self.stopApiPath = self.api_root + "/api/v1/server/minecraft/stop"
+        self.updateApiPath = self.api_root + "/api/v1/server/minecraft/status"
+
         self.startButton = button.StartServerButton(disabled=True)
         self.stopButton = button.StopServerButton(disabled=True)
         self.updateButton = button.UpdateServerButton()
@@ -80,6 +84,45 @@ class ServerControlView(discord.ui.View):
         self.startButton.disabled = self.serverOnline
         self.stopButton.disabled = not self.serverOnline
         await interaction.response.edit_message(content=minecraft_server_message.format(serverStatus=server_status), view=self)
+
+    async def Request2MCServer(self, action: str) -> tuple[str | None, dict | None]:
+        """Define how to request to minecraft api for each action.
+
+        Args:
+            action (str): enum["start", "stop", "status"]
+
+        Raises:
+            ValueError: raise when action | requestType is not defined.
+
+        Returns:
+            tuple[str | None, dict | None]: (err, data)
+        """
+        match action:
+            case "start":
+                endpoint = self.startApiPath
+                requestType = "POST"
+            case "stop":
+                endpoint = self.stopApiPath
+                requestType = "POST"
+            case "status":
+                endpoint = self.updateApiPath
+                requestType = "GET"
+            case _:
+                raise ValueError(f"Invalid action: {action}")
+        async with aiohttp.ClientSession() as session:
+            match requestType:
+                case "POST":
+                    async with session.post(endpoint) as resp:
+                        if resp.status != 200:
+                            return await resp.text(), None
+                        return await None, resp.json()
+                case "GET":
+                    async with session.get(endpoint) as resp:
+                        if resp.status != 200:
+                            return await resp.text(), None
+                        return await None, resp.json()
+                case _:
+                    raise ValueError(f"Undefined request type: {requestType}")
 
     @classmethod
     def ServerControlMessage(cls, server_status: str) -> str:
