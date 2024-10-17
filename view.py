@@ -80,3 +80,7 @@ class ServerControlView(discord.ui.View):
         self.startButton.disabled = self.serverOnline
         self.stopButton.disabled = not self.serverOnline
         await interaction.response.edit_message(content=minecraft_server_message.format(serverStatus=server_status), view=self)
+
+    @classmethod
+    def ServerControlMessage(cls, server_status: str) -> str:
+        return minecraft_server_message.format(serverStatus=server_status)
