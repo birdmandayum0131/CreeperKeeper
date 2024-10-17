@@ -16,6 +16,13 @@ def value(message: str) -> str:
     return f"{colors.colorize(message, fg='blue', bold=True)}"
 
 
+def Error(message: str) -> str:
+    return f"""```ansi
+{colors.colorize(message, fg='red', bg='white', bold=True)}
+```
+"""
+
+
 minecraft_server_message = f"""
 **【Minecraft 伺服器】**
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -43,4 +50,5 @@ __ *( 伺服器啟動大約需要 30 秒到 1 分鐘 )* __
 {field('伺服器版本 : ')}{value('1.21.1')}
 {field('伺服器狀態 : ')}{value('{serverStatus}')}
 ```
+{{errorMessage}}
 """
