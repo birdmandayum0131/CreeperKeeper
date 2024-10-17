@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands
-from view import ServerManageView
+from view import ServerControlView
 
 
 class MinecraftServerBot(commands.Bot):
@@ -11,7 +11,7 @@ class MinecraftServerBot(commands.Bot):
         super().__init__(command_prefix=commands.when_mentioned_or('!'), intents=intents)
 
     async def setup_hook(self) -> None:
-        self.add_view(ServerManageView())
+        self.add_view(ServerControlView())
 
     async def on_ready(self):
         print(f'Logged in as {self.user} (ID: {self.user.id})')
