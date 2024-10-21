@@ -10,4 +10,4 @@ COPY ./ /home/discordbot/CreeperKeeper
 RUN pip install -r /home/discordbot/CreeperKeeper/requirements.txt
 # Copy server file and eula to the image for building
 WORKDIR /home/discordbot/CreeperKeeper
-CMD ["python", "main.py"]
+CMD ["python", "./src/main.py"]
