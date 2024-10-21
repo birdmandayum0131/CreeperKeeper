@@ -1,0 +1,1 @@
+from .message_templates import minecraft_server_message
