@@ -48,7 +48,7 @@ __ *( 伺服器啟動大約需要 30 秒到 1 分鐘 )* __
 {title('[伺服器資訊]')}
 {field('伺服器位址 : ')}{value('minecraft.bardbird.com')}
 {field('伺服器版本 : ')}{value('1.21.1')}
-{field('伺服器狀態 : ')}{value('{serverStatus}')}
+{field('伺服器狀態 : ')}{value('{server_status}')}
 ```
-{{errorMessage}}
+{{error_message}}
 """
