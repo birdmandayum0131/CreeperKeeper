@@ -5,7 +5,8 @@ from .server_status import ServerStatus
 class MinecraftServerManager:
     """A class for managing the minecraft server."""
 
-    def __init__(self, api_root: str):
+    def __init__(self, api_root: str, environment: str = "dev"):
+        self.environment = environment
         self.start_server_endpoint = api_root + "/api/v1/server/minecraft/start"
         self.stop_server_endpoint = api_root + "/api/v1/server/minecraft/stop"
         self.server_status_endpoint = api_root + "/api/v1/server/minecraft/status"
