@@ -4,7 +4,7 @@ from discord import Interaction
 
 from domain import ServerStatus
 
-from .button import RefreshServerButton, StartServerButton, StopServerButton
+from .server_manage_button import RefreshServerButton, StartServerButton, StopServerButton
 
 
 class ServerManagePanel:
@@ -24,10 +24,11 @@ class ServerManagePanel:
         start_server_callback: Callable[[Interaction], None],
         stop_server_callback: Callable[[Interaction], None],
         refresh_status_callback: Callable[[Interaction], None],
+        id_prefix: str = "",
     ):
-        self.start_server_button = StartServerButton()
-        self.stop_server_button = StopServerButton()
-        self.refresh_status_button = RefreshServerButton()
+        self.start_server_button = StartServerButton(id_prefix)
+        self.stop_server_button = StopServerButton(id_prefix)
+        self.refresh_status_button = RefreshServerButton(id_prefix)
 
         self.start_server_button.callback = start_server_callback
         self.stop_server_button.callback = stop_server_callback
@@ -44,3 +45,4 @@ class ServerManagePanel:
         """
         self.start_server_button.disabled = server_status != ServerStatus.OFFLINE
         self.stop_server_button.disabled = server_status != ServerStatus.ONLINE
+        self.refresh_status_button.disabled = server_status == ServerStatus.STARTING or server_status == ServerStatus.STOPPING

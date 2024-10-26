@@ -12,3 +12,5 @@ urls:
 image:
   repository: creeper-keeper
   tag: latest
+
+environment: dev

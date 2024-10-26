@@ -4,5 +4,6 @@ from enum import StrEnum
 class ServerStatus(StrEnum):
     ONLINE = "online"
     OFFLINE = "offline"
-    PENDING = "pending"
+    STARTING = "starting"
+    STOPPING = "stopping"
     UNKNOWN = "unknown"
