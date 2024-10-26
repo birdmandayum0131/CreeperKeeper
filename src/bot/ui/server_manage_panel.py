@@ -45,3 +45,4 @@ class ServerManagePanel:
         """
         self.start_server_button.disabled = server_status != ServerStatus.OFFLINE
         self.stop_server_button.disabled = server_status != ServerStatus.ONLINE
+        self.refresh_status_button.disabled = server_status == ServerStatus.STARTING or server_status == ServerStatus.STOPPING

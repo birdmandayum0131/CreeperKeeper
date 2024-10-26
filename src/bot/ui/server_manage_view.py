@@ -25,6 +25,7 @@ class ServerManageView(discord.ui.View):
     def __init__(self, server_manager: MinecraftServerManager):
         # * init base class with timeout None for persistent view
         super().__init__(timeout=None)
+        self.fetch_interval = 3
         self.server_manager = server_manager
         self.ui_panel = ServerManagePanel(
             self._start_server_callback,
@@ -44,17 +45,19 @@ class ServerManageView(discord.ui.View):
             await interaction.message.edit(content=self.server_manage_message, view=self)
             return
 
-        self.server_manager.server_status = ServerStatus.PENDING
+        err = await self.server_manager.start_server()
         self.ui_panel.update_pannel(self.server_manager.server_status)
         await interaction.message.edit(content=self.server_manage_message, view=self)
+        if err:
+            return
 
-        await self.server_manager.start_server()
-        self.ui_panel.update_pannel(self.server_manager.server_status)
-        await interaction.message.edit(content=self.server_manage_message, view=self)
-
-        await asyncio.sleep(6)
-        await self.fetch_and_update()
-        await interaction.message.edit(content=self.server_manage_message, view=self)
+        while self.server_manager.server_status != ServerStatus.ONLINE:
+            err, status = await self.fetch_and_update()
+            await interaction.message.edit(content=self.server_manage_message, view=self)
+            if err:
+                return
+            elif status != ServerStatus.ONLINE:
+                await asyncio.sleep(self.fetch_interval)
 
     async def _stop_server_callback(self, interaction: discord.Interaction):
         await interaction.response.defer()
@@ -64,17 +67,19 @@ class ServerManageView(discord.ui.View):
             await interaction.message.edit(content=self.server_manage_message, view=self)
             return
 
-        self.server_manager.server_status = ServerStatus.PENDING
+        err = await self.server_manager.stop_server()
         self.ui_panel.update_pannel(self.server_manager.server_status)
         await interaction.message.edit(content=self.server_manage_message, view=self)
+        if err:
+            return
 
-        await self.server_manager.stop_server()
-        self.ui_panel.update_pannel(self.server_manager.server_status)
-        await interaction.message.edit(content=self.server_manage_message, view=self)
-
-        await asyncio.sleep(6)
-        await self.fetch_and_update()
-        await interaction.message.edit(content=self.server_manage_message, view=self)
+        while self.server_manager.server_status != ServerStatus.OFFLINE:
+            err, status = await self.fetch_and_update()
+            await interaction.message.edit(content=self.server_manage_message, view=self)
+            if err:
+                return
+            elif status != ServerStatus.OFFLINE:
+                await asyncio.sleep(self.fetch_interval)
 
     async def _refresh_status_callback(self, interaction: discord.Interaction):
         """Fetch the server status and update the view."""
