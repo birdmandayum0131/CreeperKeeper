@@ -5,3 +5,4 @@ metadata:
 data:
   BOT_TOKEN: "{{ .Values.token.bot }}"
   MINECRAFT_API_PATH: "{{ .Values.urls.minecraft }}"
+  APP_ENV: "{{ .Values.environment }}"
