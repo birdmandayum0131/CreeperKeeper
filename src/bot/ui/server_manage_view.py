@@ -30,6 +30,7 @@ class ServerManageView(discord.ui.View):
             self._start_server_callback,
             self._stop_server_callback,
             self._refresh_status_callback,
+            id_prefix=self.server_manager.environment + "_",
         )
 
         for item in self.ui_panel:
